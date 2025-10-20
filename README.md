@@ -1,2 +1,0 @@
-# HAP
-create HAP application
