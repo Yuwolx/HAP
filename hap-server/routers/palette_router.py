@@ -6,21 +6,23 @@ router = APIRouter()
 
 @router.post("/palette")
 def get_palette(data: dict):
-    secondary = data.get("secondary")
+    secondary = data.get("secondary", "")
 
-    palettes = {
-        "고요함": ["#A7C7E7", "#C9DCEC", "#E8F0F7", "#F4F9FB", "#FFFFFF"],  # 맑은 하늘·평온
-        "활기참": ["#FFD54F", "#FFB300", "#FF8F00", "#FF6F00", "#F57C00"],  # 태양빛·생동감
-        "자유로움": ["#80CBC4", "#4DB6AC", "#26A69A", "#009688", "#00695C"],  # 바람·푸른 공간
-        "감사함": ["#AED581", "#9CCC65", "#8BC34A", "#7CB342", "#689F38"],  # 자연·초록·따뜻함
-        "신남": ["#FF8A80", "#FF5252", "#FF1744", "#D50000", "#C51162"],  # 강렬함·기쁨의 폭발
-        "설렘": ["#F8BBD0", "#F48FB1", "#EC407A", "#E91E63", "#AD1457"],  # 사랑·두근거림
+    base_colors = [
+        "#E6B8B8", "#FAD4C0", "#FFE1A8", "#F6E7CB", "#D8E2DC",
+        "#A8DADC", "#BFD8E6", "#C3CDE6", "#D7C7E9", "#EADCF8",
+        "#E5D3C5", "#F3D5B5", "#EABF9F", "#C9B79C", "#B4C3A9",
+        "#CFE1B9", "#E2ECE9", "#F1E5D1", "#E9CFCF", "#F6E5E5",
+    ]
+
+    palette_map = {
+        "고요함": ["#D8E2DC", "#C3CDE6", "#E2ECE9", "#E5D3C5", "#F1E5D1"],
+        "활기참": ["#E6B8B8", "#A8DADC", "#BFD8E6", "#CFE1B9", "#D7C7E9"],
+        "자유로움": ["#A8DADC", "#BFD8E6", "#CFE1B9", "#E2ECE9", "#D7C7E9"],
+        "감사함": ["#E5D3C5", "#EABF9F", "#C9B79C", "#F1E5D1", "#F3D5B5"],
+        "신남": ["#E6B8B8", "#FAD4C0", "#FFE1A8", "#EABF9F", "#E9CFCF"],
+        "설렘": ["#D7C7E9", "#EADCF8", "#E6B8B8", "#F6E5E5", "#FAD4C0"],
     }
 
-    # 선택지에 없는 감정이라면 기본 톤으로 반환
-    selected_palette = palettes.get(
-        secondary,
-        ["#E0E0E0", "#EEEEEE", "#F5F5F5", "#FAFAFA", "#FFFFFF"]
-    )
-
-    return {"colors": selected_palette}
+    colors = palette_map.get(secondary, base_colors[:5])
+    return {"colors": colors}

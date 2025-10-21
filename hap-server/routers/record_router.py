@@ -51,3 +51,43 @@ def get_records(db: Session = Depends(get_db)):
         }
         for r in records
     ]
+
+# ✏️ UPDATE (기록 수정)
+@router.put("/record/{record_id}")
+def update_record(
+    record_id: int,
+    primary: str = None,
+    secondary: str = None,
+    situation: str = None,
+    color: str = None,
+    db: Session = Depends(get_db)
+):
+    record = db.query(EmotionRecord).filter(EmotionRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    # 전달된 값만 수정
+    if primary is not None:
+        record.primary = primary
+    if secondary is not None:
+        record.secondary = secondary
+    if situation is not None:
+        record.situation = situation
+    if color is not None:
+        record.color = color
+
+    db.commit()
+    db.refresh(record)
+    return {"message": "record updated", "record": record.id}
+
+
+# 🗑️ DELETE (기록 삭제)
+@router.delete("/record/{record_id}")
+def delete_record(record_id: int, db: Session = Depends(get_db)):
+    record = db.query(EmotionRecord).filter(EmotionRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    db.delete(record)
+    db.commit()
+    return {"message": "record deleted", "record": record_id}
