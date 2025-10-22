@@ -19,7 +19,8 @@ def create_record(
     secondary: str,
     situation: str = "",
     color: str = "",
-    user_id: str = "anonymous",  # ✅ 기본값으로 추가
+    location: str = "",  # ✅ 추가됨
+    user_id: str = "anonymous",
     db: Session = Depends(get_db)
 ):
     record = EmotionRecord(
@@ -28,7 +29,9 @@ def create_record(
         secondary=secondary,
         situation=situation,
         color=color,
+        location=location  # ✅ 모델에도 저장
     )
+
     db.add(record)
     db.commit()
     db.refresh(record)

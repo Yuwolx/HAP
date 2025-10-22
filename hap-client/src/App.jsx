@@ -2,6 +2,10 @@ import { useState } from "react";
 import axios from "axios";
 
 function App() {
+  // ✅ 상태 관리
+  const [location, setLocation] = useState("");
+  const [customLocation, setCustomLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [userId, setUserId] = useState("");
   const [primary, setPrimary] = useState("");
   const [secondary, setSecondary] = useState("");
@@ -12,31 +16,46 @@ function App() {
   const [showRecords, setShowRecords] = useState(false);
   const [toast, setToast] = useState("");
 
+  // ✅ 선택지
   const primaryOptions = ["혼자", "가족과 함께", "친구와 함께", "연인과 함께", "지인과 함께"];
   const secondaryOptions = ["고요함", "활기참", "자유로움", "감사함", "신남", "설렘"];
+  const locationOptions = [
+    "집",
+    "공원",
+    "카페",
+    "학교",
+    "직장",
+    "바다",
+    "산",
+    "도서관",
+    "식당",
+    "산책길",
+    "직접 입력하기",
+  ];
 
-  const emotionColors = {
-    고요함: { bg: "#E6F0FA", shadow: "rgba(98, 150, 204, 0.3)" },
-    활기참: { bg: "#E9F5EC", shadow: "rgba(98, 204, 136, 0.3)" },
-    자유로움: { bg: "#FDF6E3", shadow: "rgba(204, 176, 98, 0.3)" },
-    감사함: { bg: "#FFF2E1", shadow: "rgba(204, 160, 98, 0.3)" },
-    신남: { bg: "#FFE6EC", shadow: "rgba(204, 98, 128, 0.3)" },
-    설렘: { bg: "#F8E6FF", shadow: "rgba(163, 98, 204, 0.3)" },
-  };
-
-  // 공통 버튼 스타일
+  // ✅ 공통 버튼 스타일
   const buttonStyle = (isSelected) => ({
-    padding: "12px 20px",
-    margin: "6px 0",
-    borderRadius: "10px",
-    width: "200px",
-    border: isSelected ? "2px solid #5B6C8C" : "1px solid #CCC",
-    backgroundColor: isSelected ? "#EDF0F4" : "#FFF",
-    color: "#333",
+    margin: "6px",
+    padding: "10px 20px",
+    borderRadius: "12px",
+    border: isSelected ? "2px solid #5B6C8C" : "1px solid #C8C8C8",
+    backgroundColor: isSelected ? "#EDF0F4" : "#FFFFFF",
+    color: isSelected ? "#334155" : "#3A3A3A",
     cursor: "pointer",
-    fontSize: "15px",
-    transition: "all 0.3s ease",
+    fontFamily: "'Noto Sans KR', sans-serif",
+    transition: "all 0.25s ease",
+    boxShadow: isSelected
+      ? "0 2px 8px rgba(91,108,140,0.2)"
+      : "0 1px 4px rgba(0,0,0,0.05)",
   });
+
+  const locationButtonStyle = buttonStyle;
+
+  // ✅ 토스트 함수
+  const showToast = (text) => {
+    setToast(text);
+    setTimeout(() => setToast(""), 2000);
+  };
 
   // 🎨 팔레트 요청
   const handlePalette = async () => {
@@ -56,14 +75,26 @@ function App() {
     if (!selectedColor) return alert("색상을 선택해주세요!");
     try {
       await axios.post("http://127.0.0.1:8000/record", null, {
-        params: { primary, secondary, situation, color: selectedColor, user_id: userId || "anonymous" },
+        params: {
+          primary,
+          secondary,
+          situation,
+          color: selectedColor,
+          location,
+          user_id: userId || "anonymous",
+        },
       });
       showToast("기록이 저장되었어요 💚");
+
+      // 입력 초기화
       setPrimary("");
       setSecondary("");
       setSituation("");
-      setColors([]);
+      setLocation("");
+      setSelectedLocation("");
+      setCustomLocation("");
       setSelectedColor("");
+      setColors([]);
     } catch {
       showToast("저장 중 문제가 발생했어요 😢");
     }
@@ -83,12 +114,6 @@ function App() {
     } catch {
       showToast("기록을 불러올 수 없어요 😢");
     }
-  };
-
-  // ✅ 토스트
-  const showToast = (text) => {
-    setToast(text);
-    setTimeout(() => setToast(""), 2000);
   };
 
   return (
@@ -128,7 +153,7 @@ function App() {
         </div>
       )}
 
-      {/* 메인 컨테이너 */}
+      {/* 메인 카드 */}
       <div
         style={{
           backgroundColor: "white",
@@ -143,7 +168,7 @@ function App() {
         <h1
           style={{
             fontWeight: 600,
-            fontSize: "30px",      // 👈 추가 (기존보다 작게)
+            fontSize: "30px",
             marginBottom: "32px",
             color: "#333",
           }}
@@ -151,8 +176,7 @@ function App() {
           오늘의 행복을 기록해볼까요?
         </h1>
 
-
-        {/* 사용자 이름 */}
+        {/* 👤 사용자 이름 */}
         <div style={{ marginBottom: "30px" }}>
           <h3>👤 사용자 이름</h3>
           <input
@@ -202,9 +226,53 @@ function App() {
           </div>
         </div>
 
-        {/* 3️⃣ 상황 입력 */}
+        {/* 3️⃣ 어디에서 있었나요 */}
+        <div style={{ marginBottom: "30px" }}>
+          <h3>3️⃣ 어디에서 있었나요?</h3>
+          {locationOptions.map((option) => (
+            <button
+              key={option}
+              style={locationButtonStyle(selectedLocation === option)}
+              onClick={() => {
+                setSelectedLocation(option);
+                if (option === "직접 입력하기") {
+                  setCustomLocation("");
+                  setLocation("");
+                } else {
+                  setLocation(option);
+                }
+              }}
+            >
+              {option}
+            </button>
+          ))}
+
+          {/* 직접 입력 */}
+          {selectedLocation === "직접 입력하기" && (
+            <div style={{ marginTop: "15px" }}>
+              <input
+                type="text"
+                placeholder="직접 입력해주세요 (예: 전시회, 강변 등)"
+                value={customLocation}
+                onChange={(e) => {
+                  setCustomLocation(e.target.value);
+                  setLocation(e.target.value);
+                }}
+                style={{
+                  width: "60%",
+                  padding: "10px",
+                  borderRadius: "10px",
+                  border: "1px solid #D0D0D0",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* 4️⃣ 상황 입력 */}
         <div style={{ marginBottom: "20px" }}>
-          <h3>3️⃣ 그때의 상황을 간단히 적어볼까요?</h3>
+          <h3>4️⃣ 그때의 상황을 간단히 적어볼까요?</h3>
           <input
             type="text"
             placeholder="예: 저녁 바람을 맞으며 산책했어요 🌿"
@@ -236,7 +304,7 @@ function App() {
           팔레트 보기 🎨
         </button>
 
-        {/* 색상 팔레트 */}
+        {/* 🎨 색상 팔레트 */}
         {colors.length > 0 && (
           <>
             <p style={{ marginBottom: "10px", color: "#4B5563" }}>
@@ -289,7 +357,7 @@ function App() {
           </button>
         )}
 
-        {/* 📖 기록 보기 버튼 */}
+        {/* 📖 기록 보기 */}
         <div style={{ marginTop: "40px" }}>
           <button
             onClick={handleFetchRecords}
@@ -306,6 +374,46 @@ function App() {
             {showRecords ? "기록 닫기 🔒" : "내 기록 보기 📖"}
           </button>
         </div>
+        {/* 🗂️ 기록 리스트 */}
+          {showRecords && records.length > 0 && (
+            <div
+              style={{
+                marginTop: "30px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              {records.map((rec) => (
+                <div
+                  key={rec.id}
+                  style={{
+                    width: "80%",
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: "12px",
+                    padding: "18px",
+                    margin: "8px 0",
+                    textAlign: "left",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    borderLeft: `8px solid ${rec.color || "#CCC"}`,
+                  }}
+                >
+                  <p style={{ fontWeight: "bold", marginBottom: "6px" }}>
+                    👥 {rec.primary} | 😊 {rec.secondary}
+                  </p>
+                  <p>📍 {rec.location || "장소 미기록"}</p>  {/* ✅ 장소 표시 추가 */}
+                  <p>🗒️ {rec.situation}</p>
+                  <small style={{ color: "#666" }}>
+                    {new Date(rec.created_at).toLocaleString("ko-KR", {
+                      timeZone: "Asia/Seoul",
+                    })}
+                  </small>
+                </div>
+              ))}
+            </div>
+          )}
+
       </div>
     </div>
   );
